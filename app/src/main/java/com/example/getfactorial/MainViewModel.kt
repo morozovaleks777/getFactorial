@@ -4,36 +4,77 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import java.math.BigInteger
+import kotlin.concurrent.thread
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class MainViewModel : ViewModel() {
+private val coroutineScope= CoroutineScope(Dispatchers.Main+CoroutineName("My coroutine scope"))
+    private val _state = MutableLiveData<State>()
+    val state: LiveData<State>
+        get() = _state
 
-    private val _error = MutableLiveData<Boolean>()
-    val error: LiveData<Boolean>
-        get() = _error
 
-    private val _factorial = MutableLiveData<String>()
-    val factorial: LiveData<String>
-        get() = _factorial
-
-    private val _progress = MutableLiveData<Boolean>()
-    val progress: LiveData<Boolean>
-        get() = _progress
-
-    fun calculate(value: String?) {
-        _progress.value = true
+   fun calculate(value: String?) {
+        _state.value = Progress
         if (value.isNullOrBlank()) {
-            _progress.value = false
-            _error.value = true
+            _state.value = Error
             return
         }
-        viewModelScope.launch {
+     //   with viewModelScope
+//        viewModelScope.launch {
+//            val number = value.toLong()
+//            val result = factorial(number)
+//            _state.value = Result(value = result)
+//        }
+        // with coroutineScope
+        coroutineScope.launch {
             val number = value.toLong()
-            // calculate
-            delay(1000)
-            _progress.value = false
-            _factorial.value = number.toString()
+            val result = factorial(number)
+            _state.value = Result(value = result)
         }
+
+    }
+
+    //work incorrect
+//    private fun factorial(number:Long):BigInteger{
+//        var result = BigInteger.ONE
+//        for(i in 1..number){
+//            result=result.multiply(BigInteger.valueOf(i))
+//
+//        }
+//         return result
+//    }
+    //first  variant with suspendCoroutine
+// private suspend fun  factorial(number:Long):String{
+//   return suspendCoroutine {
+//        thread {
+//            var result = BigInteger.ONE
+//            for (i in 1..number) {
+//                result = result.multiply(BigInteger.valueOf(i))
+//
+//            }
+//            it.resumeWith(kotlin.Result.success(result.toString()))
+//        }
+//    }
+//
+//}
+
+// second variant with withContext
+    private suspend fun factorial(number: Long): String {
+        return withContext(Dispatchers.Default) {
+            var result = BigInteger.ONE
+            for (i in 1..number) {
+                result = result.multiply(BigInteger.valueOf(i))
+            }
+            result.toString()
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        coroutineScope.cancel()
     }
 }
