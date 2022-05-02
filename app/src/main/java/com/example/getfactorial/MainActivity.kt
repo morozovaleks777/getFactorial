@@ -42,8 +42,9 @@ class MainActivity : AppCompatActivity() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-                is Result -> binding.textViewFactorial.text = it.factorial
+                is Result -> binding.textViewFactorial.text = it.value
             }
         }
     }
+
 }
