@@ -15,16 +15,16 @@ class MainViewModel : ViewModel() {
 
 
     fun calculate(value: String?) {
-        _state.  value = State(isInProgress = true)
+        _state.  value = Progress
         if (value.isNullOrBlank()) {
-            _state.value= State(isInProgress = false, isError = true)
+            _state.value= Error
             return
         }
         viewModelScope.launch {
             val number = value.toLong()
             // calculate
             delay(1000)
-            _state.value= State(isInProgress = false, factorial = value.toString())
+            _state.value= Result( factorial = value.toString())
         }
     }
 }
